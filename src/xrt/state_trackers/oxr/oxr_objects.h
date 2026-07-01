@@ -1350,6 +1350,9 @@ struct oxr_session
 	 */
 	XrViewConfigurationType current_view_config_type;
 
+	//! State of the head's XRT_INPUT_GENERIC_HEAD_DETECT input, for oxr_poll_event.
+	bool presence;
+
 	/*!
 	 * There is a extra state between xrBeginSession has been called and
 	 * the first xrEndFrame has been called. These are to track this.
