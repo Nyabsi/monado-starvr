@@ -1,4 +1,5 @@
 // Copyright 2025, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -928,7 +929,8 @@ struct rift_hmd
 	struct rift_config_report config;
 	struct rift_display_info_report display_info;
 
-	struct b_timing_source *timing_source;
+	struct t_timing_event_sink *timing_event_sink;
+	struct t_timing_event_source *timing_event_source;
 
 	struct rift_tracking_report tracking;
 

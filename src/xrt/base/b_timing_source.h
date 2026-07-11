@@ -27,7 +27,8 @@ extern "C" {
 
 struct b_timing_source
 {
-	struct t_timing_event_source base;
+	struct t_timing_event_source source;
+	struct t_timing_event_sink sink;
 	struct xrt_frame_node node;
 
 	struct os_mutex mutex;
@@ -38,10 +39,9 @@ struct b_timing_source
 };
 
 xrt_result_t
-b_timing_source_create(struct xrt_frame_context *xfctx, struct b_timing_source **out_bts);
-
-void
-b_timing_source_push_event(struct b_timing_source *bts, const struct t_timing_event *event);
+b_timing_source_create(struct xrt_frame_context *xfctx,
+                       struct t_timing_event_sink **out_sink,
+                       struct t_timing_event_source **out_source);
 
 #ifdef __cplusplus
 }

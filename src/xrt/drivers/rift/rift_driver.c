@@ -174,7 +174,7 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 			                                       &hmd->last_local_exposure_time_ns);
 			os_thread_helper_unlock(&hmd->sensor_thread);
 
-			if (hmd->timing_source) {
+			if (hmd->timing_event_sink) {
 				struct t_timing_event event = {
 				    .type = T_TIMING_EVENT_TYPE_CAMERA_EXPOSURE_START,
 				    .camera_exposure_start =
@@ -188,7 +188,7 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 				        },
 				};
 
-				b_timing_source_push_event(hmd->timing_source, &event);
+				t_timing_event_sink_push_timing_event(hmd->timing_event_sink, &event);
 			}
 		}
 
@@ -710,7 +710,7 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	m_ff_f64_alloc(&hmd->gravity_correction, 4096);
 
 	if (xfctx) {
-		xrt_result_t xret = b_timing_source_create(xfctx, &hmd->timing_source);
+		xrt_result_t xret = b_timing_source_create(xfctx, &hmd->timing_event_sink, &hmd->timing_event_source);
 		U_LOG_CHK_ONLY_PRINT(hmd->log_level, xret, "b_timing_source_create");
 	}
 
@@ -1172,9 +1172,5 @@ rift_add_to_constellation_tracker(struct rift_hmd *hmd, struct t_constellation_t
 struct t_timing_event_source *
 rift_hmd_get_timing_event_source(struct rift_hmd *hmd)
 {
-	if (hmd->timing_source != NULL) {
-		return &hmd->timing_source->base;
-	}
-
-	return NULL;
+	return hmd->timing_event_source;
 }
