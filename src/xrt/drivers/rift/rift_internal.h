@@ -27,7 +27,7 @@
 #include "os/os_hid.h"
 #include "os/os_threading.h"
 
-#include "b_timing_source.h"
+#include "tracking/t_time_sync.h"
 
 #include <stdlib.h>
 #include <stdio.h>

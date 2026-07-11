@@ -10,7 +10,25 @@
 
 #include "util/u_misc.h"
 
+#include "os/os_threading.h"
+
 #include "b_timing_source.h"
+
+
+#define B_TIMING_SOURCE_MAX_SINKS 4
+
+struct b_timing_source
+{
+	struct t_timing_event_source source;
+	struct t_timing_event_sink sink;
+	struct xrt_frame_node node;
+
+	struct os_mutex mutex;
+
+	bool running;
+
+	struct t_timing_event_sink *sinks[B_TIMING_SOURCE_MAX_SINKS];
+};
 
 
 /*!

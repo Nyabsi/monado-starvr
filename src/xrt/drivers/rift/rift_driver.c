@@ -42,6 +42,8 @@
 #include "util/u_linux.h"
 #include "util/u_truncate_printf.h"
 
+#include "b_timing_source.h"
+
 #include <stdio.h>
 #include <assert.h>
 

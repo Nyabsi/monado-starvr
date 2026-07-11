@@ -16,27 +16,10 @@
 
 #include "tracking/t_time_sync.h"
 
-#include "os/os_threading.h"
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define B_TIMING_SOURCE_MAX_SINKS 4
-
-struct b_timing_source
-{
-	struct t_timing_event_source source;
-	struct t_timing_event_sink sink;
-	struct xrt_frame_node node;
-
-	struct os_mutex mutex;
-
-	bool running;
-
-	struct t_timing_event_sink *sinks[B_TIMING_SOURCE_MAX_SINKS];
-};
 
 xrt_result_t
 b_timing_source_create(struct xrt_frame_context *xfctx,
