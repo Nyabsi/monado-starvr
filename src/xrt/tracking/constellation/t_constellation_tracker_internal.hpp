@@ -128,23 +128,23 @@ public: // Fields
 
 public: // Methods
 	std::optional<DeviceState *>
-	GetDeviceState(t_constellation_device_id_t device_id);
+	getDeviceState(t_constellation_device_id_t device_id);
 
 	DeviceState &
-	PutDeviceState(t_constellation_device_id_t device_id);
+	putDeviceState(t_constellation_device_id_t device_id);
 
 	CameraSample(t_blob_observation &blobservation, Camera *camera);
 
 	CameraSample() = default;
 
 	void
-	MarkMatchingBlobs(ConstellationTracker *ct,
+	markMatchingBlobs(ConstellationTracker *ct,
 	                  t_constellation_tracker_led_model &led_model,
 	                  t_constellation_device_id_t device_id,
 	                  pose_metrics_blob_match_info &blob_match_info);
 
 	t_blob_observation
-	ToBlobObservation() const &
+	toBlobObservation() const &
 	{
 		t_blob_observation obs = {
 		    .source = this->source,
@@ -158,9 +158,9 @@ public: // Methods
 	}
 
 	t_blob_observation
-	ToBlobObservation() && = delete;
+	toBlobObservation() && = delete;
 	t_blob_observation
-	ToBlobObservation() const && = delete;
+	toBlobObservation() const && = delete;
 };
 
 struct CameraScribbleSettings
@@ -182,7 +182,7 @@ public: // Fields
 
 public: // Methods
 	void
-	SetupDebugTracking(void *root);
+	setupDebugTracking(void *root);
 };
 
 struct Camera
@@ -264,14 +264,14 @@ public: // Methods (t_constellation_tracker.cpp)
 	operator=(Camera &&) = delete;
 
 	std::optional<xrt_pose>
-	GetWorldPose(timepoint_ns when_ns);
+	getWorldPose(timepoint_ns when_ns);
 
 	void
-	DeferSampleToSlowThread(CameraSample &sample);
+	deferSampleToSlowThread(CameraSample &sample);
 
 	//! Fast matching based on prior pose
 	bool
-	TryDevicePose(std::unique_ptr<Device> &device,
+	tryDevicePose(std::unique_ptr<Device> &device,
 	              CameraSample &sample,
 	              DeviceState &device_state,
 	              xrt_pose &Tcv_cam_world,
@@ -279,30 +279,30 @@ public: // Methods (t_constellation_tracker.cpp)
 	              xrt_pose &Tcv_world_device_candidate);
 
 	bool
-	TryDeviceBlobRecovery(std::unique_ptr<Device> &device,
+	tryDeviceBlobRecovery(std::unique_ptr<Device> &device,
 	                      CameraSample &sample,
 	                      DeviceState &device_state,
 	                      xrt_pose &Tcv_cam_world,
 	                      std::optional<xrt_pose> &Tcv_world_device_prior);
 
 	void
-	SlowSampleProcess(CameraSample &sample);
+	processSampleSlow(CameraSample &sample);
 
 	//! Returns whether a slow search is needed
 	bool
-	FastSampleProcess(CameraSample &sample);
+	processSampleFast(CameraSample &sample);
 
 	void
-	PushPose(CameraSample &camera_sample,
+	pushPose(CameraSample &camera_sample,
 	         DeviceState &device_state,
 	         std::unique_ptr<Device> &device,
 	         pose_metrics &score,
 	         xrt_pose &Tcv_cam_device,
 	         bool was_optimized);
 
-public: // Public (constellation_debug_scribble.cpp)
+public: // Methods (constellation_debug_scribble.cpp)
 	void
-	DebugScribbleSample(CameraSample &sample, bool fast);
+	debugScribbleSample(CameraSample &sample, bool fast);
 };
 
 struct CameraMosaic
@@ -322,7 +322,7 @@ public: // Methods
 	~CameraMosaic() = default;
 
 	std::optional<xrt_pose>
-	GetTrackingOriginPose(timepoint_ns when_ns);
+	getTrackingOriginPose(timepoint_ns when_ns);
 };
 
 struct DeviceLastPose
@@ -434,13 +434,13 @@ public: // Methods
 	operator=(ConstellationTracker &&) = delete;
 
 	void
-	SetupVariableTracking();
+	setupVariableTracking();
 
 	t_constellation_device_id_t
-	AddDevice(t_constellation_tracker_device_params *params, t_constellation_tracker_device *device);
+	addDevice(t_constellation_tracker_device_params *params, t_constellation_tracker_device *device);
 
 	void
-	RemoveDevice(t_constellation_device_id_t device_id);
+	removeDevice(t_constellation_device_id_t device_id);
 };
 
 }; // namespace xrt::tracking::constellation
