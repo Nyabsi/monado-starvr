@@ -1,5 +1,6 @@
 // Copyright 2020-2025, Collabora, Ltd.
 // Copyright 2025-2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -709,10 +710,8 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	m_ff_f64_alloc(&hmd->gravity_correction, 4096);
 
 	if (xfctx) {
-		result = b_timing_source_init(xfctx, &hmd->timing_source);
-		if (result < 0) {
-			HMD_ERROR(hmd, "Failed to initialize timing source, reason %d", result);
-		}
+		xrt_result_t xret = b_timing_source_create(xfctx, &hmd->timing_source);
+		U_LOG_CHK_ONLY_PRINT(hmd->log_level, xret, "b_timing_source_create");
 	}
 
 	result = rift_send_keepalive(hmd);

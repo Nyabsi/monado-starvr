@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -92,17 +93,17 @@ b_timing_source_destroy(struct xrt_frame_node *node)
  * Exported functions
  */
 
-int
-b_timing_source_init(struct xrt_frame_context *xfctx, struct b_timing_source **out_bts)
+xrt_result_t
+b_timing_source_create(struct xrt_frame_context *xfctx, struct b_timing_source **out_bts)
 {
 	struct b_timing_source *bts = U_TYPED_CALLOC(struct b_timing_source);
 	if (bts == NULL) {
-		return -1;
+		return XRT_ERROR_ALLOCATION;
 	}
 
 	if (os_mutex_init(&bts->mutex) < 0) {
 		free(bts);
-		return -1;
+		return XRT_ERROR_SYNC_PRIMITIVE_CREATION_FAILED;
 	}
 
 	// @ref t_timing_event_source
@@ -118,7 +119,7 @@ b_timing_source_init(struct xrt_frame_context *xfctx, struct b_timing_source **o
 	xrt_frame_context_add(xfctx, &bts->node);
 
 	*out_bts = bts;
-	return 0;
+	return XRT_SUCCESS;
 }
 
 void

@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -11,6 +12,7 @@
 #pragma once
 
 #include "xrt/xrt_frame.h"
+#include "xrt/xrt_results.h"
 
 #include "tracking/t_time_sync.h"
 
@@ -35,8 +37,8 @@ struct b_timing_source
 	struct t_timing_event_sink *sinks[B_TIMING_SOURCE_MAX_SINKS];
 };
 
-int
-b_timing_source_init(struct xrt_frame_context *xfctx, struct b_timing_source **out_bts);
+xrt_result_t
+b_timing_source_create(struct xrt_frame_context *xfctx, struct b_timing_source **out_bts);
 
 void
 b_timing_source_push_event(struct b_timing_source *bts, const struct t_timing_event *event);
