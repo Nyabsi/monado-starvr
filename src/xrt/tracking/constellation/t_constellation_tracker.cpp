@@ -404,86 +404,93 @@ Camera::processSampleSlow(CameraSample &sample)
 
 	auto Txr_world_cam = sample.Txr_world_cam;
 
-	for (std::unique_ptr<Device> &device : tracker->devices) {
-		auto search_model = device->search_model;
+	for (int i = 0; i < 2; i++) {
+		for (std::unique_ptr<Device> &device : tracker->devices) {
+			auto search_model = device->search_model;
 
-		correspondence_search_flags search_flags =
-		    (correspondence_search_flags)(CS_FLAG_STOP_FOR_STRONG_MATCH | CS_FLAG_DEEP_SEARCH);
+			// Do a shallow search first go around
+			correspondence_search_flags search_flags =
+			    i == 0 ? CS_FLAG_SHALLOW_SEARCH : CS_FLAG_DEEP_SEARCH;
 
-		auto device_state = sample.getDeviceState(device->id).value_or(nullptr);
-		// If there was no device state in the sample, that means this device appeared after the constellation
-		// tracker started this sample, so we need to fill out the device state here.
-		if (device_state == nullptr) {
-			device_state = &sample.putDeviceState(device->id);
+			search_flags = (correspondence_search_flags)(search_flags | CS_FLAG_STOP_FOR_STRONG_MATCH);
 
-			// we need to do a slow process for this device since it wasn't present in the fast processing
-			device_state->needs_slow_processing = true;
-		}
+			auto device_state = sample.getDeviceState(device->id).value_or(nullptr);
+			// If there was no device state in the sample, that means this device appeared after the
+			// constellation tracker started this sample, so we need to fill out the device state here.
+			if (device_state == nullptr) {
+				device_state = &sample.putDeviceState(device->id);
 
-		if (!device_state->needs_slow_processing) {
-			continue; // we already did a fast process for this device and it succeeded, no need to
-			          // do a slow one
-		}
-
-		xrt_pose Tcv_cam_device = XRT_POSE_IDENTITY;
-		if (device_state->Txr_world_device_prior.has_value() && Txr_world_cam.has_value()) {
-			xrt_pose Txr_cam_world;
-			math_pose_invert(&Txr_world_cam.value(), &Txr_cam_world);
-
-			xrt_pose Txr_cam_device;
-			math_pose_transform(&Txr_cam_world, &device_state->Txr_world_device_prior.value(),
-			                    &Txr_cam_device);
-
-			math_pose_convert_opencv(&Txr_cam_device, &Tcv_cam_device);
-
-			search_flags = (correspondence_search_flags)(search_flags | CS_FLAG_HAVE_POSE_PRIOR);
-		}
-
-		// Arbitrary threshold to prevent trusting a gravity vector if the device itself isn't confident in it's
-		// own gravity.
-		const float gravity_error_threshold_deg = 25.f;
-
-		xrt_vec3 cv_camera_gravity_vector = {0.0, 1.0, 0.0};
-		if ((search_flags & CS_FLAG_HAVE_POSE_PRIOR) != 0 &&
-		    device->gravity_error_rad < DEG_TO_RAD(gravity_error_threshold_deg)) {
-			// If we have a pose for the camera and we have a prior pose
-			// (required by correspondence for search gravity matching)
-			if (Txr_world_cam.has_value()) {
-				xrt_pose Tcv_world_cam;
-				math_pose_convert_opencv(&Txr_world_cam.value(), &Tcv_world_cam);
-
-				// Acquire the camera's gravity vector under the processing lock
-				get_pose_gravity_vector(Tcv_world_cam, cv_camera_gravity_vector);
-
-				// Add in to check gravity
-				search_flags = (correspondence_search_flags)(search_flags | CS_FLAG_MATCH_GRAVITY);
+				// we need to do a slow process for this device since it wasn't present in the fast
+				// processing
+				device_state->needs_slow_processing = true;
 			}
-		}
 
-		pose_metrics score;
-		bool found_pose = correspondence_search_find_one_pose( //
-		    data.cs,                                           //
-		    search_model,                                      //
-		    search_flags,                                      //
-		    &Tcv_cam_device,                                   //
-		    &device->prior_pos_error,                          //
-		    &device->prior_rot_error,                          //
-		    &cv_camera_gravity_vector,                         //
-		    device->gravity_error_rad,                         //
-		    &score);                                           //
-		if (found_pose) {
-			this->pushPose(sample,         //
-			               *device_state,  //
-			               device,         //
-			               score,          //
-			               Tcv_cam_device, //
-			               false);         //
+			if (!device_state->needs_slow_processing) {
+				continue; // we already did a fast process for this device and it succeeded, no need to
+				          // do a slow one
+			}
 
-			// We found a pose for this device in this sample
-			device_state->needs_slow_processing = false;
-		} else {
-			CT_TRACE(tracker, "Camera %p slow processing for device %d failed to find a pose", (void *)this,
-			         device->id);
+			xrt_pose Tcv_cam_device = XRT_POSE_IDENTITY;
+			if (device_state->Txr_world_device_prior.has_value() && Txr_world_cam.has_value()) {
+				xrt_pose Txr_cam_world;
+				math_pose_invert(&Txr_world_cam.value(), &Txr_cam_world);
+
+				xrt_pose Txr_cam_device;
+				math_pose_transform(&Txr_cam_world, &device_state->Txr_world_device_prior.value(),
+				                    &Txr_cam_device);
+
+				math_pose_convert_opencv(&Txr_cam_device, &Tcv_cam_device);
+
+				search_flags = (correspondence_search_flags)(search_flags | CS_FLAG_HAVE_POSE_PRIOR);
+			}
+
+			// Arbitrary threshold to prevent trusting a gravity vector if the device itself isn't confident
+			// in it's own gravity.
+			const float gravity_error_threshold_deg = 25.f;
+
+			xrt_vec3 cv_camera_gravity_vector = {0.0, 1.0, 0.0};
+			if ((search_flags & CS_FLAG_HAVE_POSE_PRIOR) != 0 &&
+			    device->gravity_error_rad < DEG_TO_RAD(gravity_error_threshold_deg)) {
+				// If we have a pose for the camera and we have a prior pose
+				// (required by correspondence for search gravity matching)
+				if (Txr_world_cam.has_value()) {
+					xrt_pose Tcv_world_cam;
+					math_pose_convert_opencv(&Txr_world_cam.value(), &Tcv_world_cam);
+
+					// Acquire the camera's gravity vector under the processing lock
+					get_pose_gravity_vector(Tcv_world_cam, cv_camera_gravity_vector);
+
+					// Add in to check gravity
+					search_flags =
+					    (correspondence_search_flags)(search_flags | CS_FLAG_MATCH_GRAVITY);
+				}
+			}
+
+			pose_metrics score;
+			bool found_pose = correspondence_search_find_one_pose( //
+			    data.cs,                                           //
+			    search_model,                                      //
+			    search_flags,                                      //
+			    &Tcv_cam_device,                                   //
+			    &device->prior_pos_error,                          //
+			    &device->prior_rot_error,                          //
+			    &cv_camera_gravity_vector,                         //
+			    device->gravity_error_rad,                         //
+			    &score);                                           //
+			if (found_pose) {
+				this->pushPose(sample,         //
+				               *device_state,  //
+				               device,         //
+				               score,          //
+				               Tcv_cam_device, //
+				               false);         //
+
+				// We found a pose for this device in this sample
+				device_state->needs_slow_processing = false;
+			} else {
+				CT_TRACE(tracker, "Camera %p slow processing for device %d failed to find a pose",
+				         (void *)this, device->id);
+			}
 		}
 	}
 
