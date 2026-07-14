@@ -7,6 +7,7 @@ add_library(
 	aux_tracking STATIC
 	t_camera_models.cpp
 	t_camera_models.h
+	t_camera_models.hpp
 	t_data_utils.c
 	t_dead_reckoning.h
 	t_dead_reckoning.c

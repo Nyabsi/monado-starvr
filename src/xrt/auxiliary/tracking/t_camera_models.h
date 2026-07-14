@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
- * @brief  Camera (un)projection functions for various camera models.
+ * @brief  Camera (un)projection C API for various camera models.
  * @author Moshi Turner <moshiturner@protonmail.com>
  * @author Beyley Cardellio <ep1cm1n10n123@gmail.com>
  * @ingroup aux_tracking
