@@ -739,13 +739,21 @@ filter_device_features(struct vk_bundle *vk,
 	CHECK(timeline_semaphore, timeline_semaphore_info.timelineSemaphore);
 #endif
 
+#ifdef VK_KHR_present_id
+	CHECK(present_id, present_id_info.presentId);
+#endif
+
+#ifdef VK_KHR_present_id2
+	CHECK(present_id2, present_id2_info.presentId2);
+#endif
+
 #if defined(VK_KHR_present_id) && defined(VK_KHR_present_wait)
 	// we need both extensions enabled/functional
-	CHECK(present_wait, present_id_info.presentId && present_wait_info.presentWait);
-#endif // defined(HAS_ANY_PRESENT_ID_EXTENSION) && defined(VK_KHR_present_wait)
+	CHECK(present_wait, device_features->present_id && present_wait_info.presentWait);
+#endif // defined(VK_KHR_present_id) && defined(VK_KHR_present_wait)
 
 #if defined(VK_KHR_present_id2) && defined(VK_KHR_present_wait2)
-	CHECK(present_wait2, present_id2_info.presentId2 && present_wait2_info.presentWait2);
+	CHECK(present_wait2, device_features->present_id2 && present_wait2_info.presentWait2);
 #endif
 
 #ifdef VK_KHR_synchronization2
