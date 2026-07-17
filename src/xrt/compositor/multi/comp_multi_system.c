@@ -469,8 +469,9 @@ update_session_state_locked(struct multi_system_compositor *msc)
 			U_LOG_I("Doing warm start, %u active app session(s).", (uint32_t)msc->sessions.active_count);
 		} else {
 			msc->sessions.state = MULTI_SYSTEM_STATE_STOPPED;
-			U_LOG_E("Native compositor failed to begin session on warm start; will retry once a "
-			        "client actually connects.");
+			U_LOG_E(
+			    "Native compositor failed to begin session on warm start; will retry once a "
+			    "client actually connects.");
 		}
 		break;
 
@@ -484,9 +485,10 @@ update_session_state_locked(struct multi_system_compositor *msc)
 			U_LOG_I("Started native session, %u active app session(s).",
 			        (uint32_t)msc->sessions.active_count);
 		} else {
-			U_LOG_E("Native compositor failed to begin session, %u active app session(s) still "
-			        "waiting.",
-			        (uint32_t)msc->sessions.active_count);
+			U_LOG_E(
+			    "Native compositor failed to begin session, %u active app session(s) still "
+			    "waiting.",
+			    (uint32_t)msc->sessions.active_count);
 		}
 		break;
 
