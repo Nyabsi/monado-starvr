@@ -17,6 +17,10 @@
 #include "os/os_threading.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define B_TIMING_SOURCE_MAX_SINKS 4
 
 struct b_timing_source
@@ -36,3 +40,7 @@ b_timing_source_init(struct xrt_frame_context *xfctx, struct b_timing_source **o
 
 void
 b_timing_source_push_event(struct b_timing_source *bts, const struct t_timing_event *event);
+
+#ifdef __cplusplus
+}
+#endif
