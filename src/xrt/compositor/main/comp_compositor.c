@@ -135,6 +135,9 @@ compositor_init_swapchain(struct comp_compositor *c);
 static bool
 compositor_init_renderer(struct comp_compositor *c);
 
+static void
+compositor_session_cleanup(struct comp_compositor *c);
+
 static xrt_result_t
 compositor_begin_session(struct xrt_compositor *xc, const struct xrt_begin_session_info *info)
 {
@@ -147,8 +150,7 @@ compositor_begin_session(struct xrt_compositor *xc, const struct xrt_begin_sessi
 		    !compositor_init_swapchain(c) ||
 		    !compositor_init_renderer(c)) {
 			COMP_ERROR(c, "Failed to init compositor %p", (void *)c);
-			c->base.base.base.destroy(&c->base.base.base);
-
+			compositor_session_cleanup(c);
 			return XRT_ERROR_VULKAN;
 		}
 		comp_target_set_title(c->target, WINDOW_TITLE);
@@ -165,6 +167,14 @@ compositor_end_session(struct xrt_compositor *xc)
 	struct comp_compositor *c = comp_compositor(xc);
 	COMP_DEBUG(c, "END_SESSION");
 
+	compositor_session_cleanup(c);
+
+	return XRT_SUCCESS;
+}
+
+static void
+compositor_session_cleanup(struct comp_compositor *c)
+{
 	if (c->deferred_surface) {
 		// Make sure we don't have anything to destroy.
 		comp_swapchain_shared_garbage_collect(&c->base.cscs);
@@ -174,8 +184,6 @@ compositor_end_session(struct xrt_compositor *xc)
 #endif
 		comp_target_destroy(&c->target);
 	}
-
-	return XRT_SUCCESS;
 }
 
 static xrt_result_t
