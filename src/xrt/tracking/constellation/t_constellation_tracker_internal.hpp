@@ -325,6 +325,16 @@ public: // Methods
 	GetTrackingOriginPose(timepoint_ns when_ns);
 };
 
+struct DeviceLastPose
+{
+public: // Fields
+	xrt_pose Txr_world_device;
+	timepoint_ns timestamp_ns;
+
+public: // Methods
+	DeviceLastPose(xrt_pose Txr_world_device, timepoint_ns timestamp_ns);
+};
+
 struct Device
 {
 public: // Fields
@@ -346,7 +356,7 @@ public: // Fields
 	mutable os::Mutex data_lock;
 	struct
 	{
-		std::optional<xrt_pose> Txr_world_device_last_known;
+		std::optional<DeviceLastPose> last_known_pose;
 	} locked_data;
 	// clang-format on
 

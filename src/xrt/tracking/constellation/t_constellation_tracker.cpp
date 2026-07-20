@@ -569,8 +569,8 @@ Camera::FastSampleProcess(CameraSample &sample)
 		{
 			std::unique_lock<os::Mutex> lock(device->data_lock);
 
-			if (device->locked_data.Txr_world_device_last_known.has_value()) {
-				math_pose_convert_opencv(&device->locked_data.Txr_world_device_last_known.value(),
+			if (auto last_known_pose = device->locked_data.last_known_pose) {
+				math_pose_convert_opencv(&last_known_pose->Txr_world_device,
 				                         &Tcv_world_device_last_known);
 				has_last_known = true;
 			}
@@ -667,11 +667,6 @@ Camera::PushPose(CameraSample &camera_sample,
 		                           &device->params.led_model, device->id, &this->model, NULL);
 	}
 
-	// Call back to the blobwatch to update the blobs for this device. Done after pose optimization since the RANSAC
-	// process will unlabel any outliers.
-	auto tbo = camera_sample.ToBlobObservation();
-	t_blobwatch_mark_blob_device(camera_sample.source, &tbo, device->id);
-
 	// Move to OpenXR space
 	xrt_pose Txr_cam_device;
 	math_pose_convert_opencv(&Tcv_cam_device, &Txr_cam_device);
@@ -737,7 +732,17 @@ Camera::PushPose(CameraSample &camera_sample,
 	{
 		std::unique_lock<os::Mutex> lock(device->data_lock);
 
-		device->locked_data.Txr_world_device_last_known = Txr_world_device;
+		// If we already found a pose in the future, then don't mark blobs, since the device has definitely
+		// moved.
+		if (!device->locked_data.last_known_pose.has_value() ||
+		    device->locked_data.last_known_pose->timestamp_ns <= camera_sample.timestamp_ns) {
+			// Call back to the blobwatch to update the blobs for this device. Done after pose optimization
+			// since the RANSAC process will unlabel any outliers.
+			auto tbo = camera_sample.ToBlobObservation();
+			t_blobwatch_mark_blob_device(camera_sample.source, &tbo, device->id);
+		}
+
+		device->locked_data.last_known_pose = DeviceLastPose(Txr_world_device, camera_sample.timestamp_ns);
 	}
 
 	CT_DEBUG(tracker, "Found pose for device %d", device->id);
@@ -781,6 +786,16 @@ CameraMosaic::GetTrackingOriginPose(timepoint_ns when_ns)
 
 /*
  *
+ * DeviceLastPose implementations
+ *
+ */
+
+DeviceLastPose::DeviceLastPose(xrt_pose Txr_world_device, timepoint_ns timestamp_ns)
+    : Txr_world_device(Txr_world_device), timestamp_ns(timestamp_ns)
+{}
+
+/*
+ *
  * Device implementations
  *
  */
@@ -788,7 +803,7 @@ CameraMosaic::GetTrackingOriginPose(timepoint_ns when_ns)
 Device::Device(t_constellation_tracker_device_params *params,
                t_constellation_tracker_device *device,
                t_constellation_device_id_t id)
-    : params(*params), device(device), id(id), data_lock(), locked_data({.Txr_world_device_last_known = std::nullopt})
+    : params(*params), device(device), id(id), data_lock(), locked_data({.last_known_pose = std::nullopt})
 {
 	// Copy the LED model leds into safe memory, since we want to mutate it into OpenCV space
 	this->params.led_model.leds = new t_constellation_tracker_led[this->params.led_model.led_count];
