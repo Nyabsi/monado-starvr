@@ -13,6 +13,7 @@
 
 #include "interfaces/context.hpp"
 
+#include "b_body_tracker.h"
 #include "b_hand_tracker.h"
 
 #include "util/u_var.h"
@@ -1015,6 +1016,7 @@ steamvr_lh_create_devices(struct xrt_prober *xp, struct xrt_system_devices **out
 	svrs->ctx->in_setup = false;
 
 	u_system_devices_populate_function_pointers(xsysd, get_roles, destroy);
+	xsysd->create_body_tracker = b_body_tracker_create;
 	xsysd->create_hand_tracker = b_hand_tracker_create;
 
 	// Include the HMD
