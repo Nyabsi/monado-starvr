@@ -23,6 +23,7 @@
 #include "util/u_logging.h"
 #include "util/u_pretty_print.h"
 #include "b_space_overseer.h"
+#include "b_tracked_device.h"
 
 #include <assert.h>
 #include <inttypes.h>
@@ -96,7 +97,7 @@ struct b_space_overseer
 	//! Main graph lock.
 	pthread_rwlock_t lock;
 
-	//! Map from xdev to space, each entry holds a reference.
+	//! Map from xdev to tracked device, each entry holds a reference.
 	struct u_hashmap_int *xdev_map;
 
 	//! Map from xrt_tracking_origin to space, each entry holds a reference.
@@ -213,6 +214,13 @@ hashmap_unreference_space_items(void *item, void *priv)
 	u_space_reference(&us, NULL);
 }
 
+static void
+hashmap_unreference_tracked_device_items(void *item, void *priv)
+{
+	struct b_tracked_device *btd = (struct b_tracked_device *)item;
+	b_tracked_device_reference(&btd, NULL);
+}
+
 static struct u_space *
 find_xdev_space_read_locked(struct b_space_overseer *uso, struct xrt_device *xdev)
 {
@@ -225,7 +233,8 @@ find_xdev_space_read_locked(struct b_space_overseer *uso, struct xrt_device *xde
 	}
 	assert(ptr != NULL);
 
-	return (struct u_space *)ptr;
+	struct b_tracked_device *btd = (struct b_tracked_device *)ptr;
+	return u_space(b_tracked_device_get_space(btd));
 }
 
 static struct u_space *
@@ -1182,8 +1191,8 @@ destroy(struct xrt_space_overseer *xso)
 	xrt_space_reference(&uso->base.semantic.view, NULL);
 	xrt_space_reference(&uso->base.semantic.root, NULL);
 
-	// Each device has a reference to its space, make sure to unreference before creating.
-	u_hashmap_int_clear_and_call_for_each(uso->xdev_map, hashmap_unreference_space_items, uso);
+	// Each device has a reference to its tracked device, make sure to unreference before destroying.
+	u_hashmap_int_clear_and_call_for_each(uso->xdev_map, hashmap_unreference_tracked_device_items, uso);
 	u_hashmap_int_destroy(&uso->xdev_map);
 
 	u_hashmap_int_clear_and_call_for_each(uso->xto_map, hashmap_unreference_space_items, uso);
@@ -1337,15 +1346,13 @@ b_space_overseer_link_space_to_device(struct b_space_overseer *uso, struct xrt_s
 		        u_str_xrt_device_name(xdev->name), xdev->id.val);
 	}
 
-	// Each xdev needs to add a reference to the space.
-	struct xrt_space *new_space = NULL;
-	xrt_space_reference(&new_space, xs);
+	struct b_tracked_device *new_btd = b_tracked_device_create(xs);
 
-	u_hashmap_int_insert(uso->xdev_map, key, new_space);
+	u_hashmap_int_insert(uso->xdev_map, key, new_btd);
 
 	pthread_rwlock_unlock(&uso->lock);
 
-	// Dereferrence old space outside of lock.
-	struct xrt_space *old_space = (struct xrt_space *)ptr;
-	xrt_space_reference(&old_space, NULL);
+	// Dereference old tracked device outside of lock.
+	struct b_tracked_device *old_btd = (struct b_tracked_device *)ptr;
+	b_tracked_device_reference(&old_btd, NULL);
 }

@@ -21,6 +21,8 @@ target_sources(
 		b_session.h
 		b_space_overseer.c
 		b_space_overseer.h
+		b_tracked_device.c
+		b_tracked_device.h
 		b_system.c
 		b_system.h
 		b_system_devices.c
