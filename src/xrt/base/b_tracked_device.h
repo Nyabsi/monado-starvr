@@ -20,6 +20,9 @@ extern "C" {
 struct b_tracked_device;
 
 
+typedef void (*b_tracked_device_pose_space_cb)(struct xrt_space *xs, void *priv);
+
+
 /*!
  * Create a tracked device with a reference to @p space.
  *
@@ -41,6 +44,42 @@ b_tracked_device_reference(struct b_tracked_device **dst, struct b_tracked_devic
  */
 struct xrt_space *
 b_tracked_device_get_space(struct b_tracked_device *btd);
+
+/*!
+ * Track a pose space owned by this device. The caller must hold the space
+ * overseer graph lock.
+ *
+ * @public @memberof b_tracked_device
+ */
+void
+b_tracked_device_track_pose_space(struct b_tracked_device *btd, struct xrt_space *xs);
+
+/*!
+ * Stop tracking a pose space. The caller must hold the space overseer graph
+ * lock.
+ *
+ * @public @memberof b_tracked_device
+ */
+void
+b_tracked_device_untrack_pose_space(struct b_tracked_device *btd, struct xrt_space *xs);
+
+/*!
+ * Iterate tracked pose spaces. The caller must hold the space overseer graph
+ * lock.
+ *
+ * @public @memberof b_tracked_device
+ */
+void
+b_tracked_device_for_each_pose_space(struct b_tracked_device *btd, b_tracked_device_pose_space_cb cb, void *priv);
+
+/*!
+ * Drop all tracked pose spaces without destroying them. The caller must hold the
+ * space overseer graph lock.
+ *
+ * @public @memberof b_tracked_device
+ */
+void
+b_tracked_device_clear_pose_spaces(struct b_tracked_device *btd);
 
 
 #ifdef __cplusplus
