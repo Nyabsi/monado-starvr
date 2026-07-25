@@ -674,6 +674,15 @@ locate_spaces(struct xrt_space_overseer *xso,
 
 	struct u_space *ubase_space = u_space(base_space);
 
+	/*
+	 * Hold the read lock for the whole loop so space graph reads (and the
+	 * duplicate-space copy optimisation) stay consistent with respect to
+	 * writers such as remove_device / zombify. Resolving under the lock is
+	 * deliberate: deferring it would require buffering a relation chain per
+	 * space, and get_tracked_pose already dominates the critical section.
+	 */
+	pthread_rwlock_rdlock(&uso->lock);
+
 	for (uint32_t i = 0; i < space_count; i++) {
 		// spaces are allowed to be NULL
 		if (spaces[i] == NULL) {
@@ -698,7 +707,7 @@ locate_spaces(struct xrt_space_overseer *xso,
 		// crude optimization: If locating a space in itself, we don't actually need to locate the space itself.
 		// only the offsets need to be applied.
 		if (spaces[i] != base_space) {
-			build_relation_chain(uso, &xrc, ubase_space, uspace, at_timestamp_ns);
+			build_relation_chain_read_locked(uso, &xrc, ubase_space, uspace, at_timestamp_ns);
 		}
 
 		m_relation_chain_push_inverted_pose_if_not_identity(&xrc, base_offset);
@@ -706,6 +715,8 @@ locate_spaces(struct xrt_space_overseer *xso,
 		// For base_space =~= space (approx equals).
 		special_resolve(&xrc, &out_relations[i]);
 	}
+
+	pthread_rwlock_unlock(&uso->lock);
 
 	return XRT_SUCCESS;
 }
