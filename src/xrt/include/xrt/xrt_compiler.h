@@ -159,7 +159,9 @@
  *
  * @todo Remove this macro when Monado is updated project-wide to C23.
  */
-#if __STDC_VERSION__ >= 202311L
+#if defined(__cpp_decltype) && __cpp_decltype >= 200707L
+#define XRT_TYPEOF(x) decltype(x)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 #define XRT_TYPEOF(x) typeof(x)
 #elif defined(__GNUC__) || defined(__clang__)
 #define XRT_TYPEOF(x) __typeof__(x)
