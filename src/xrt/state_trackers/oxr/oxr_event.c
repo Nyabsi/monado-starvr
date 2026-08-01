@@ -372,22 +372,32 @@ oxr_event_remove_session_events(struct oxr_logger *log, struct oxr_session *sess
 
 	lock(inst);
 
+	struct oxr_event *prev = NULL;
 	struct oxr_event *e = inst->event.next;
 	while (e != NULL) {
 		struct oxr_event *cur = e;
 		e = e->next;
 
 		if (!is_session_link_to_event(cur, session)) {
+			prev = cur;
 			continue;
+		}
+
+		// Unlink cur, keeping the predecessor's next pointer valid.
+		if (prev != NULL) {
+			prev->next = cur->next;
 		}
 
 		if (cur == inst->event.next) {
 			inst->event.next = cur->next;
 		}
 
+		// The new tail is the last retained node (prev), or NULL if
+		// nothing was kept before cur.
 		if (cur == inst->event.last) {
-			inst->event.last = NULL;
+			inst->event.last = prev;
 		}
+
 		free(cur);
 	}
 
