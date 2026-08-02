@@ -56,21 +56,21 @@ XRTVRCompositor_029::WaitGetPoses(VR_ARRAY_COUNT(unRenderPoseArrayCount) vr::Tra
 	openvr_logger logger;
 	OPENVR_LOGGER_INIT(logger);
 
-	auto error = this->core->compositor->WaitBeginFrame(logger);
+	auto error = this->core->compositor->waitBeginFrame(logger);
 	if (error != vr::EVRCompositorError::VRCompositorError_None) {
-		OPENVR_LOG_ERROR(logger, "WaitGetPoses: WaitBeginFrame failed with error code %d",
+		OPENVR_LOG_ERROR(logger, "WaitGetPoses: waitBeginFrame failed with error code %d",
 		                 static_cast<int>(error));
 		return error;
 	}
 
-	timepoint_ns render_time_ns = this->core->compositor->GetTimeForPredictions();
-	timepoint_ns game_time_ns = render_time_ns + this->core->compositor->GetFramePeriod();
+	timepoint_ns render_time_ns = this->core->compositor->getTimeForPredictions();
+	timepoint_ns game_time_ns = render_time_ns + this->core->compositor->getFramePeriod();
 
-	this->core->devices->TrackDevices(logger, render_time_ns, this->core->compositor->current_tracking_universe,
+	this->core->devices->trackDevices(logger, render_time_ns, this->core->compositor->current_tracking_universe,
 	                                  this->core->compositor->last_render_poses.data(),
 	                                  static_cast<uint32_t>(this->core->compositor->last_render_poses.size()));
 
-	this->core->devices->TrackDevices(logger, game_time_ns, this->core->compositor->current_tracking_universe,
+	this->core->devices->trackDevices(logger, game_time_ns, this->core->compositor->current_tracking_universe,
 	                                  this->core->compositor->last_game_poses.data(),
 	                                  static_cast<uint32_t>(this->core->compositor->last_game_poses.size()));
 
@@ -153,7 +153,7 @@ XRTVRCompositor_029::Submit(vr::EVREye eEye,
 		pBounds = &default_bounds;
 	}
 
-	return this->core->compositor->Submit(logger, eEye, *pTexture, *pBounds, nSubmitFlags);
+	return this->core->compositor->submit(logger, eEye, *pTexture, *pBounds, nSubmitFlags);
 }
 
 vr::EVRCompositorError
