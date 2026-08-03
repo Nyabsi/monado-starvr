@@ -89,8 +89,8 @@ XRTVRClientCore_003::Init(vr::EVRApplicationType eApplicationType, const char *p
 		return vr::EVRInitError::VRInitError_Init_HmdNotFound;
 	}
 
-	xret = xrt_instance_create_system(this->xinst, &this->xsys, &this->xsysd, &this->xso,
-	                                  this->isHeadless() ? nullptr : &this->xsysc);
+	// @note We need an xsysc here since `getVulkanOutputDevice` must work in a headless session.
+	xret = xrt_instance_create_system(this->xinst, &this->xsys, &this->xsysd, &this->xso, &this->xsysc);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to create xrt_system", xret);
 		return xretToInitError(xret);
