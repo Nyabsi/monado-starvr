@@ -942,20 +942,25 @@ snprint_luid(char *str, size_t size, xrt_luid_t *luid)
 void
 Compositor::getVulkanOutputDevice(openvr_logger &logger, uint64_t *out_device, VkInstance pInstance)
 {
-	VkInstance vulkanInstance = (VkInstance)pInstance;
-
 	auto vulkanGetInstanceProcAddr = vkGetInstanceProcAddr;
+
+	// We have no way to give a suggestion in this case.
+	// @todo Should we create our own instance here?
+	if (pInstance == VK_NULL_HANDLE) {
+		*out_device = 0;
+		return;
+	}
 
 	// @todo TODO: dedup this whole function with oxr_vulkan
 #define GET_PROC(INST, NAME) PFN_vk##NAME loaded_##NAME = (PFN_vk##NAME)vulkanGetInstanceProcAddr(INST, "vk" #NAME)
-	GET_PROC(vulkanInstance, EnumeratePhysicalDevices);
-	GET_PROC(vulkanInstance, GetPhysicalDeviceProperties2KHR);
+	GET_PROC(pInstance, EnumeratePhysicalDevices);
+	GET_PROC(pInstance, GetPhysicalDeviceProperties2KHR);
 #undef GET_PROC
 
 	VkResult vk_ret;
 	uint32_t count;
 
-	vk_ret = loaded_EnumeratePhysicalDevices(vulkanInstance, &count, NULL);
+	vk_ret = loaded_EnumeratePhysicalDevices(pInstance, &count, NULL);
 	if (vk_ret != VK_SUCCESS) {
 		OPENVR_LOG_ERROR(logger, "Failed to enumerate physical devices to get output device");
 		*out_device = 0;
@@ -969,7 +974,7 @@ Compositor::getVulkanOutputDevice(openvr_logger &logger, uint64_t *out_device, V
 	}
 
 	std::vector<VkPhysicalDevice> phys(count);
-	vk_ret = loaded_EnumeratePhysicalDevices(vulkanInstance, &count, phys.data());
+	vk_ret = loaded_EnumeratePhysicalDevices(pInstance, &count, phys.data());
 	if (vk_ret != VK_SUCCESS) {
 		OPENVR_LOG_ERROR(logger, "Failed to enumerate physical devices to get output device");
 		*out_device = 0;

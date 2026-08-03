@@ -220,6 +220,10 @@ Compositor::submit(openvr_logger &logger,
 		return vr::EVRCompositorError::VRCompositorError_IsNotSceneApplication;
 	}
 
+	if (texture.handle == nullptr) {
+		return vr::EVRCompositorError::VRCompositorError_InvalidTexture;
+	}
+
 	// Eye has already been submit
 	if (this->frame_eye_states[eye].has_value()) {
 		OPENVR_LOG_ERROR(logger, "Already submitted for eye %d in this frame.", eye);
