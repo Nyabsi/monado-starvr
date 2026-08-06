@@ -371,6 +371,29 @@ Context::setup_controller(const char *serial, vr::ITrackedDeviceServerDriver *dr
 	return true;
 }
 
+void
+Context::wait_for_discover()
+{
+	this->discover_end_time =
+	    std::chrono::steady_clock::now() + std::chrono::milliseconds(debug_get_num_option_lh_discover_wait_ms());
+	while (true) {
+		std::unique_lock lk(this->devices_mut);
+		this->discover_cv.wait_until(lk, this->discover_end_time);
+
+		if (this->discover_end_time <= std::chrono::steady_clock::now())
+			break;
+	}
+}
+
+void
+Context::extend_discover()
+{
+	this->discover_end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(2000);
+	this->discover_cv.notify_all();
+}
+
+
+
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
 bool
 Context::TrackedDeviceAdded(const char *pchDeviceSerialNumber,
@@ -384,6 +407,8 @@ Context::TrackedDeviceAdded(const char *pchDeviceSerialNumber,
 		CTX_WARN("Cannot add device after setup; consider increasing LH_DISCOVER_WAIT_MS");
 		return false;
 	}
+
+	this->extend_discover();
 
 	CTX_INFO("New device added: %s", pchDeviceSerialNumber);
 	switch (eDeviceClass) {
@@ -1024,9 +1049,7 @@ steamvr_lh_create_devices(struct xrt_prober *xp, struct xrt_system_devices **out
 
 	U_LOG_IFL_I(level, "Lighthouse initialization complete, giving time to setup connected devices...");
 	// RunFrame needs to be called to detect controllers
-	using namespace std::chrono_literals;
-	auto end_time = std::chrono::steady_clock::now() + 1ms * debug_get_num_option_lh_discover_wait_ms();
-	std::this_thread::sleep_until(end_time);
+	svrs->ctx->wait_for_discover();
 	U_LOG_IFL_I(level, "Device search time complete.");
 
 	if (out_xsysd == NULL || *out_xsysd != NULL) {
