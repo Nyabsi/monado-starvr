@@ -177,15 +177,15 @@ Context::create(const std::string &steam_install,
 			return nullptr;
 		}
 	}
-	c->frame_thread = std::thread([c] {
-		while (c->frame_thread_run.load()) {
+	c->frame_thread = std::thread([ctx = c.get()] {
+		while (ctx->frame_thread_run.load()) {
 			using namespace std::chrono_literals;
 			// SteamVR calls `RunFrame()` approximately every 10.1ms
 			const std::chrono::time_point<std::chrono::steady_clock> next =
 			    std::chrono::steady_clock::now() + 10ms;
-			for (vr::IServerTrackedDeviceProvider *const &provider : c->providers)
+			for (vr::IServerTrackedDeviceProvider *const &provider : ctx->providers)
 				provider->RunFrame();
-			c->frame_thread_event.try_acquire_until(next);
+			ctx->frame_thread_event.try_acquire_until(next);
 		}
 	});
 	return c;
@@ -978,6 +978,7 @@ destroy(struct xrt_system_devices *xsysd)
 		xrt_device_destroy(&xsysd->static_xdevs[i]);
 	}
 
+	assert(svrs->ctx.use_count() == 1);
 	svrs->ctx.reset();
 	free(svrs);
 }
