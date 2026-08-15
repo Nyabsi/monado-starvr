@@ -1433,14 +1433,17 @@ create_target(const struct comp_target_factory *ctf, struct comp_compositor *c, 
 	void *dpy = NULL;
 
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
+	/*
+	 * A leased display already belongs to us, and asking X to hand it over
+	 * again is refused. Only a display found by enumeration has to be taken
+	 * from the X server that is presenting it.
+	 */
 	Display *xlib_dpy = NULL;
 	struct comp_target_swapchain probe = {0};
 	probe.base.c = c;
 
-	if (comp_window_direct_connect(&probe, &xlib_dpy)) {
+	if (lease == NULL && comp_window_direct_connect(&probe, &xlib_dpy)) {
 		dpy = xlib_dpy;
-	} else {
-		COMP_INFO(c, "No X server to lease the panels from, taking them directly");
 	}
 #endif
 
