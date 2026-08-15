@@ -583,8 +583,8 @@ renderer_ensure_images_and_renderings(struct comp_renderer *r, bool force_recrea
 		pre_rotate = true;
 	}
 
-	// @todo: is it safe to fail here?
-	if (!render_distortion_images_ensure(&r->c->nr, &r->c->base.vk, r->c->xdev, pre_rotate))
+	// Only the compute path samples these, and only a device with a compute distortion has them.
+	if (r->settings->use_compute && !render_distortion_images_ensure(&r->c->nr, &r->c->base.vk, r->c->xdev, pre_rotate))
 		return false;
 
 	r->buffer_count = r->c->target->image_count;

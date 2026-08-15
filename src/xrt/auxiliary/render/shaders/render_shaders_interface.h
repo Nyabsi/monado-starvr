@@ -33,6 +33,9 @@ struct render_shaders
 	VkShaderModule mesh_vert;
 	VkShaderModule mesh_frag;
 
+	VkShaderModule mesh_projective_vert;
+	VkShaderModule mesh_projective_frag;
+
 
 	/*
 	 * New layer renderer.

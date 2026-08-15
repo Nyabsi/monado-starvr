@@ -28,6 +28,10 @@
 #include "simulated/simulated_interface.h"
 #endif
 
+#ifdef XRT_BUILD_DRIVER_STARVR
+#include "starvr/starvr_interface.h"
+#endif
+
 #ifdef XRT_BUILD_DRIVER_HDK
 #include "hdk/hdk_interface.h"
 #endif
@@ -140,6 +144,10 @@ xrt_builder_create_func_t target_builder_list[] = {
     t_builder_rgb_tracking_create,
 #endif // T_BUILDER_RGB_TRACKING
 
+#ifdef T_BUILDER_STARVR
+    t_builder_starvr_create,
+#endif // T_BUILDER_STARVR
+
 #ifdef T_BUILDER_SIMULAVR
     t_builder_simula_create,
 #endif // T_BUILDER_SIMULAVR
@@ -210,6 +218,10 @@ struct xrt_prober_entry target_entry_list[] = {
 #ifdef XRT_BUILD_DRIVER_PSVR2
     {PSVR2_VID, PSVR2_PID, psvr2_found, "PlayStation VR2 HMD", "psvr2"},
 #endif // XRT_BUILD_DRIVER_PSVR2
+
+#ifdef XRT_BUILD_DRIVER_STARVR
+    {STARVR_VID, STARVR_PID, starvr_found, "StarVR One", "starvr"},
+#endif // XRT_BUILD_DRIVER_STARVR
 
 #ifdef XRT_BUILD_DRIVER_HYDRA
     {HYDRA_VID, HYDRA_PID, hydra_found, "Razer Hydra", "hydra"},

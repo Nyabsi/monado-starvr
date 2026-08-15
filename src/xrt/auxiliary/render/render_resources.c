@@ -534,6 +534,8 @@ render_resources_init(struct render_resources *r,
 	r->mesh.vertex_count = parts->distortion.mesh.vertex_count;
 	r->mesh.stride = parts->distortion.mesh.stride;
 	r->mesh.index_count_total = parts->distortion.mesh.index_count_total;
+	r->mesh.triangle_list = parts->distortion.mesh.triangle_list;
+	r->mesh.kind = parts->distortion.mesh.kind;
 	for (uint32_t i = 0; i < r->view_count; ++i) {
 		r->mesh.index_counts[i] = parts->distortion.mesh.index_counts[i];
 		r->mesh.index_offsets[i] = parts->distortion.mesh.index_offsets[i];

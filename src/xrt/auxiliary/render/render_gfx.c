@@ -524,7 +524,9 @@ create_mesh_pipeline(struct vk_bundle *vk,
                      VkPipelineCache pipeline_cache,
                      uint32_t src_binding,
                      uint32_t mesh_index_count_total,
+                     bool mesh_triangle_list,
                      uint32_t mesh_stride,
+                     enum xrt_distortion_mesh_kind mesh_kind,
                      const struct mesh_params *params,
                      VkShaderModule mesh_vert,
                      VkShaderModule mesh_frag,
@@ -537,7 +539,7 @@ create_mesh_pipeline(struct vk_bundle *vk,
 
 	// Do we use triangle strips or triangles with indices.
 	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	if (mesh_index_count_total > 0) {
+	if (mesh_index_count_total > 0 && !mesh_triangle_list) {
 		topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	}
 
@@ -600,7 +602,7 @@ create_mesh_pipeline(struct vk_bundle *vk,
 	};
 
 	// clang-format off
-	VkVertexInputAttributeDescription vertex_input_attribute_descriptions[2] = {
+	VkVertexInputAttributeDescription uv_attributes[2] = {
 	    {
 	        .binding = src_binding,
 	        .location = 0,
@@ -615,6 +617,33 @@ create_mesh_pipeline(struct vk_bundle *vk,
 	    },
 	};
 
+	VkVertexInputAttributeDescription projective_attributes[4] = {
+	    {
+	        .binding = src_binding,
+	        .location = 0,
+	        .format = VK_FORMAT_R32G32_SFLOAT,
+	        .offset = 0,
+	    },
+	    {
+	        .binding = src_binding,
+	        .location = 1,
+	        .format = VK_FORMAT_R32G32B32_SFLOAT,
+	        .offset = 8,
+	    },
+	    {
+	        .binding = src_binding,
+	        .location = 2,
+	        .format = VK_FORMAT_R32G32B32_SFLOAT,
+	        .offset = 20,
+	    },
+	    {
+	        .binding = src_binding,
+	        .location = 3,
+	        .format = VK_FORMAT_R32G32B32_SFLOAT,
+	        .offset = 32,
+	    },
+	};
+
 	VkVertexInputBindingDescription vertex_input_binding_description[1] = {
 	    {
 	        .binding = src_binding,
@@ -623,10 +652,13 @@ create_mesh_pipeline(struct vk_bundle *vk,
 	    },
 	};
 
+	const bool projective = mesh_kind == XRT_DISTORTION_MESH_KIND_PROJECTIVE;
+
 	VkPipelineVertexInputStateCreateInfo vertex_input_state = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-	    .vertexAttributeDescriptionCount = ARRAY_SIZE(vertex_input_attribute_descriptions),
-	    .pVertexAttributeDescriptions = vertex_input_attribute_descriptions,
+	    .vertexAttributeDescriptionCount =
+	        projective ? ARRAY_SIZE(projective_attributes) : ARRAY_SIZE(uv_attributes),
+	    .pVertexAttributeDescriptions = projective ? projective_attributes : uv_attributes,
 	    .vertexBindingDescriptionCount = ARRAY_SIZE(vertex_input_binding_description),
 	    .pVertexBindingDescriptions = vertex_input_binding_description,
 	};
@@ -726,6 +758,11 @@ render_gfx_render_pass_init(struct render_gfx_render_pass *rgrp,
 	VK_CHK_WITH_RET(ret, "create_implicit_render_pass", false);
 	VK_NAME_RENDER_PASS(vk, rgrp->render_pass, "render_gfx_render_pass render pass");
 
+	const bool projective = r->mesh.kind == XRT_DISTORTION_MESH_KIND_PROJECTIVE;
+
+	VkShaderModule mesh_vert = projective ? r->shaders->mesh_projective_vert : r->shaders->mesh_vert;
+	VkShaderModule mesh_frag = projective ? r->shaders->mesh_projective_frag : r->shaders->mesh_frag;
+
 	struct mesh_params simple_params = {
 	    .do_timewarp = false,
 	};
@@ -737,10 +774,12 @@ render_gfx_render_pass_init(struct render_gfx_render_pass *rgrp,
 	    r->pipeline_cache,         //
 	    r->mesh.src_binding,       //
 	    r->mesh.index_count_total, //
+	    r->mesh.triangle_list,     //
 	    r->mesh.stride,            //
+	    r->mesh.kind,              //
 	    &simple_params,            //
-	    r->shaders->mesh_vert,     //
-	    r->shaders->mesh_frag,     //
+	    mesh_vert,                 //
+	    mesh_frag,                 //
 	    &rgrp->mesh.pipeline);     // out_mesh_pipeline
 	VK_CHK_WITH_RET(ret, "create_mesh_pipeline", false);
 	VK_NAME_PIPELINE(vk, rgrp->mesh.pipeline, "render_gfx_render_pass mesh pipeline");
@@ -756,10 +795,12 @@ render_gfx_render_pass_init(struct render_gfx_render_pass *rgrp,
 	    r->pipeline_cache,              //
 	    r->mesh.src_binding,            //
 	    r->mesh.index_count_total,      //
+	    r->mesh.triangle_list,          //
 	    r->mesh.stride,                 //
+	    r->mesh.kind,                   //
 	    &timewarp_params,               //
-	    r->shaders->mesh_vert,          //
-	    r->shaders->mesh_frag,          //
+	    mesh_vert,                      //
+	    mesh_frag,                      //
 	    &rgrp->mesh.pipeline_timewarp); // out_mesh_pipeline
 	VK_CHK_WITH_RET(ret, "create_mesh_pipeline", false);
 	VK_NAME_PIPELINE(vk, rgrp->mesh.pipeline_timewarp, "render_gfx_render_pass mesh pipeline timewarp");

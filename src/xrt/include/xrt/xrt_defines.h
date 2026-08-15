@@ -173,6 +173,40 @@ enum xrt_distortion_model
 };
 
 /*!
+ * What a distortion mesh's vertices carry, picks the vertex layout and the
+ * shader pair the compositor draws it with.
+ *
+ * @ingroup xrt_iface
+ */
+enum xrt_distortion_mesh_kind
+{
+	//! Sample position per channel, ready to use.
+	XRT_DISTORTION_MESH_KIND_UV = 0,
+
+	//! vec3 per channel, sampled at (x/z, y/z), nothing to sample at z <= 0.
+	XRT_DISTORTION_MESH_KIND_PROJECTIVE = 1,
+};
+
+/*!
+ * How many strips a panel may be cut into, see @ref xrt_panel_strip.
+ *
+ * @ingroup xrt_iface
+ */
+#define XRT_MAX_PANEL_STRIPS (16)
+
+/*!
+ * A range of panel columns that is actually wired up, for panels whose raster
+ * has holes in it.
+ *
+ * @ingroup xrt_iface
+ */
+struct xrt_panel_strip
+{
+	uint32_t offset;
+	uint32_t width;
+};
+
+/*!
  * Screen scanout direction
  */
 enum xrt_scanout_direction
@@ -773,6 +807,7 @@ enum xrt_device_name
 	XRT_DEVICE_RIFT_REMOTE,
 	XRT_DEVICE_BLUBUR_S1,
 	XRT_DEVICE_PSVR2,
+	XRT_DEVICE_STARVR_ONE,
 	XRT_DEVICE_FLIPVR,
 	XRT_DEVICE_CONTACTGLOVE2,
 	XRT_DEVICE_CONTACTGLOVE2_WITH_MAGNETRA2,

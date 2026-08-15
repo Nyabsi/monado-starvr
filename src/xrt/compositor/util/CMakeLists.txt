@@ -22,6 +22,8 @@ add_library(
 	comp_render_helpers.h
 	comp_scratch.c
 	comp_scratch.h
+	comp_strips.c
+	comp_strips.h
 	comp_semaphore.h
 	comp_semaphore.c
 	comp_swapchain.h

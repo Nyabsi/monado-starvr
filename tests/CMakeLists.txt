@@ -32,7 +32,7 @@ if(XRT_HAVE_D3D12)
 	list(APPEND tests tests_aux_d3d_d3d12 tests_comp_client_d3d12)
 endif()
 if(XRT_HAVE_VULKAN)
-	list(APPEND tests tests_comp_client_vulkan tests_uv_to_tangent)
+	list(APPEND tests tests_comp_client_vulkan tests_uv_to_tangent tests_comp_strips)
 endif()
 if(XRT_FEATURE_OPENXR)
 	list(APPEND tests tests_input_transform)
@@ -96,6 +96,7 @@ if(XRT_HAVE_D3D12)
 endif()
 
 if(XRT_HAVE_VULKAN)
+	target_link_libraries(tests_comp_strips PRIVATE comp_util aux_vk)
 	target_link_libraries(
 		tests_comp_client_vulkan PRIVATE comp_client comp_mock comp_util aux_vk
 		)

@@ -149,6 +149,14 @@ struct xrt_hmd_parts
 		int h_pixels;
 		//! Nominal frame interval
 		uint64_t nominal_frame_interval_ns;
+
+		/*!
+		 * The parts of the raster that are actually wired up, zero for
+		 * the usual case of one contiguous rectangle. See
+		 * @ref xrt_panel_strip.
+		 */
+		uint32_t strip_count;
+		struct xrt_panel_strip strips[XRT_MAX_PANEL_STRIPS];
 	} screens[1];
 
 	/*!
@@ -194,6 +202,12 @@ struct xrt_hmd_parts
 			uint32_t index_offsets[XRT_MAX_VIEWS];
 			//! Total number of elements in mesh::indices array.
 			uint32_t index_count_total;
+
+			//! The indices form a triangle list rather than a strip.
+			bool triangle_list;
+
+			//! What the vertices carry, see the enum.
+			enum xrt_distortion_mesh_kind kind;
 		} mesh;
 
 		//! distortion is subject to the field of view

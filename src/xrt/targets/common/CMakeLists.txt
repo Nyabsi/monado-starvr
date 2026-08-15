@@ -56,6 +56,10 @@ if(XRT_BUILD_DRIVER_STEAMVR_LIGHTHOUSE)
 	target_sources(target_lists PRIVATE target_builder_steamvr.c)
 endif()
 
+if(XRT_BUILD_DRIVER_STARVR)
+	target_sources(target_lists PRIVATE target_builder_starvr.c)
+endif()
+
 if(XRT_BUILD_DRIVER_SIMULATED)
 	target_sources(target_lists PRIVATE target_builder_simulated.c)
 endif()
@@ -108,6 +112,10 @@ endif()
 
 if(XRT_BUILD_DRIVER_DEPTHAI)
 	target_link_libraries(target_lists PRIVATE drv_depthai)
+endif()
+
+if(XRT_BUILD_DRIVER_STARVR)
+	target_link_libraries(target_lists PRIVATE drv_starvr)
 endif()
 
 if(XRT_BUILD_DRIVER_SIMULATED)

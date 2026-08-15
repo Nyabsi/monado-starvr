@@ -662,6 +662,30 @@ if(XRT_BUILD_DRIVER_STEAMVR_LIGHTHOUSE)
 	list(APPEND ENABLED_HEADSET_DRIVERS steamvr_lh)
 endif()
 
+if(XRT_BUILD_DRIVER_STARVR)
+	add_library(
+		drv_starvr STATIC
+		starvr/starvr_hmd.c
+		starvr/starvr_hid.c
+		starvr/starvr_hid.h
+		starvr/starvr_mesh.c
+		starvr/starvr_mesh.h
+		starvr/starvr_prober.c
+		starvr/starvr_protocol.h
+		starvr/starvr_interface.h
+		)
+	target_link_libraries(
+		drv_starvr
+		PRIVATE
+			xrt-interfaces
+			aux_os
+			aux_util
+			${LIBUSB1_LIBRARIES}
+		)
+	target_include_directories(drv_starvr PRIVATE ${LIBUSB1_INCLUDE_DIRS})
+	list(APPEND ENABLED_HEADSET_DRIVERS starvr)
+endif()
+
 if(XRT_BUILD_DRIVER_SOLARXR)
 	add_library(
 		drv_solarxr STATIC

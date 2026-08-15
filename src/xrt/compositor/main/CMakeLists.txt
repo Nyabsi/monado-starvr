@@ -112,6 +112,11 @@ if(XRT_HAVE_WAYLAND)
 	endforeach()
 
 endif()
+
+# Knows about both of the StarVR One's panels and, on Wayland, how to lease them.
+if(XRT_BUILD_DRIVER_STARVR AND (VK_USE_PLATFORM_DISPLAY_KHR OR XRT_HAVE_XCB))
+	target_sources(comp_main PRIVATE comp_target_starvr.c)
+endif()
 if(ANDROID)
 	target_sources(comp_main PRIVATE comp_window_android.c)
 	target_link_libraries(comp_main PRIVATE aux_ogl aux_android)

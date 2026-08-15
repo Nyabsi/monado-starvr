@@ -9,7 +9,10 @@
  */
 
 #include "util/u_debug.h"
+#include "util/u_logging.h"
 #include "comp_settings.h"
+
+#include "xrt/xrt_device.h"
 
 #ifdef XRT_OS_ANDROID
 #define USE_COMPUTE_DEFAULT false
@@ -102,6 +105,12 @@ comp_settings_init(struct comp_settings *s, struct xrt_device *xdev)
 	}
 
 	s->use_compute = debug_get_bool_option_compute();
+
+	// The compute path samples xrt_device::compute_distortion, a mesh only device has none.
+	if (s->use_compute && (xdev->hmd->distortion.models & XRT_DISTORTION_MODEL_COMPUTE) == 0) {
+		U_LOG_I("Device only provides a distortion mesh, using the graphics distortion path.");
+		s->use_compute = false;
+	}
 
 	if (s->use_compute) {
 		// Tested working with a PSVR2 and a patched Mesa. Native format of the PSVR2. 10-bit formats should be

@@ -15,6 +15,7 @@
 #include "main/comp_compositor.h"
 
 #include "xrt/xrt_config_os.h"
+#include "xrt/xrt_config_drivers.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,6 +111,17 @@ comp_window_vk_display_create(struct comp_compositor *c);
 
 extern const struct comp_target_factory comp_target_factory_vk_display;
 #endif // 1
+
+#if defined(XRT_BUILD_DRIVER_STARVR) && (defined(VK_USE_PLATFORM_DISPLAY_KHR) || defined(VK_USE_PLATFORM_XCB_KHR))
+#define COMP_TARGET_STARVR
+
+/*!
+ * Direct mode over both of the StarVR One's panels.
+ *
+ * @ingroup comp_main
+ */
+extern const struct comp_target_factory comp_target_factory_starvr;
+#endif
 
 #ifdef XRT_OS_ANDROID
 /*!

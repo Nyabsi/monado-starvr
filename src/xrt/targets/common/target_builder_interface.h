@@ -59,6 +59,10 @@ extern "C" {
 #define T_BUILDER_RGB_TRACKING
 #endif
 
+#if defined(XRT_BUILD_DRIVER_STARVR) || defined(XRT_DOXYGEN)
+#define T_BUILDER_STARVR
+#endif
+
 #if defined(XRT_BUILD_DRIVER_SIMULATED) || defined(XRT_DOXYGEN)
 #define T_BUILDER_SIMULATED
 #endif
@@ -166,6 +170,13 @@ struct xrt_builder *
 t_builder_simulated_create(void);
 #endif
 
+#ifdef T_BUILDER_STARVR
+/*!
+ * The StarVR driver builder.
+ */
+struct xrt_builder *
+t_builder_starvr_create(void);
+#endif
 
 #ifdef T_BUILDER_SIMULAVR
 /*!

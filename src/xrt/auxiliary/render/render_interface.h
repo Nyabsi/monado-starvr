@@ -436,6 +436,12 @@ struct render_resources
 		uint32_t index_offsets[XRT_MAX_VIEWS];
 		uint32_t index_count_total;
 
+		//! The indices form a triangle list rather than a strip.
+		bool triangle_list;
+
+		//! What the vertices carry, picks the layout and the shaders.
+		enum xrt_distortion_mesh_kind kind;
+
 		//! Info UBOs.
 		struct render_buffer ubos[XRT_MAX_VIEWS];
 	} mesh;
