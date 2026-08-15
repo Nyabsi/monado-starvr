@@ -63,7 +63,7 @@ struct starvr_system
 static struct xrt_device *
 find_tracker_by_serial(struct starvr_system *ss, struct xrt_system_devices *xsysd, const char *serial)
 {
-	if (serial[0] == '\0') {
+	if (serial == NULL || serial[0] == '\0') {
 		SVR_WARN(ss,
 		         "No lighthouse tracker serial, set STARVR_TRACKER_SERIAL or pair the headset"
 		         ", the headset will not have tracking.");
@@ -73,13 +73,12 @@ find_tracker_by_serial(struct starvr_system *ss, struct xrt_system_devices *xsys
 	for (size_t i = 0; i < xsysd->static_xdev_count; i++) {
 		struct xrt_device *xdev = xsysd->static_xdevs[i];
 
-		if (xdev == NULL || xdev->name != XRT_DEVICE_VIVE_TRACKER ||
-		    xdev->device_type != XRT_DEVICE_TYPE_GENERIC_TRACKER) {
+		if (xdev == NULL || xdev->device_type == XRT_DEVICE_TYPE_HMD) {
 			continue;
 		}
 
 		if (strcmp(xdev->serial, serial) == 0) {
-			SVR_INFO(ss, "Using lighthouse tracker with serial: '%s'", xdev->serial);
+			SVR_INFO(ss, "Using lighthouse tracker '%s' with serial: '%s'", xdev->str, xdev->serial);
 			return xdev;
 		}
 	}
