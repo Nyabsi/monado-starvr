@@ -6,9 +6,9 @@
  * @author Nyabsi <nyabsi@sovellus.cc>
  */
 
-#include "util/comp_strips.h"
-
 #include "catch_amalgamated.hpp"
+
+#include "util/comp_strips.h"
 
 //! The StarVR One's retail panel, which is where this came from.
 static const struct xrt_panel_strip wired[8] = {
